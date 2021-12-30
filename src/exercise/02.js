@@ -3,14 +3,55 @@
 
 import * as React from 'react'
 
-function Greeting({initialName = ''}) {
-  // 🐨 initialize the state to the value from localStorage
-  // 💰 window.localStorage.getItem('name') ?? initialName
-  const [name, setName] = React.useState(initialName)
+/** 
+ * Extra credit 2:
+  const [name, setName] = React.useState(
+    () => window.localStorage.getItem('name') ?? initialName,
+  )
+ */
 
-  // 🐨 Here's where you'll use `React.useEffect`.
-  // The callback should set the `name` in localStorage.
-  // 💰 window.localStorage.setItem('name', name)
+// function useLocalStorageState(key, initialValue = '') {
+//   const [name, setName] = React.useState(
+//     () => window.localStorage.getItem(key) ?? initialValue,
+//   )
+
+//   React.useEffect(() => {
+//     window.localStorage.setItem(key, name)
+//   }, [key, name])
+
+//   return [name, setName]
+// }
+
+function useLocalStorageState(key, initialValue = '') {
+  const [state, setState] = React.useState(() => {
+    const valueInLocalStorage = window.localStorage.getItem(key)
+    if (valueInLocalStorage) {
+      try {
+        return JSON.parse(valueInLocalStorage)
+      } catch (error) {
+        window.localStorage.removeItem(key)
+      }
+    }
+    return typeof initialValue === 'function' ? initialValue() : initialValue
+  })
+
+  const prevKeyRef = React.useRef(key)
+
+  console.log('state', initialValue, state)
+  React.useEffect(() => {
+    const prevKey = prevKeyRef.current
+    if (prevKey !== key) {
+      window.localStorage.removeItem(prevKey)
+    }
+    prevKeyRef.current = key
+    window.localStorage.setItem(key, JSON.stringify(state))
+  }, [key, state])
+
+  return [state, setState]
+}
+
+function Greeting({initialValue = ''}) {
+  const [name, setName] = useLocalStorageState('name', initialValue)
 
   function handleChange(event) {
     setName(event.target.value)
@@ -27,7 +68,7 @@ function Greeting({initialName = ''}) {
 }
 
 function App() {
-  return <Greeting />
+  return <Greeting initialValue='James' />
 }
 
 export default App
