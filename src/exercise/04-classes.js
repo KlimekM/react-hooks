@@ -3,6 +3,7 @@
 // http://localhost:3000/isolated/exercise/04-classes.js
 
 import * as React from 'react'
+import {useLocalStorageState} from '../utils'
 
 // If you'd rather practice refactoring a class component to a function
 // component with hooks, then go ahead and do this exercise.
@@ -93,26 +94,21 @@ function Square({squareValue, handleSquareClick}) {
 }
 
 function Board() {
-  const [squares, setSquares] = React.useState(() => {
-    return (
-      JSON.parse(window.localStorage.getItem('squares')) || Array(9).fill(null)
-    )
-  })
+  const [squares, setSquares] = useLocalStorageState(
+    'squares',
+    Array(9).fill(null),
+  )
   const [status, setStatus] = React.useState(
     calculateStatus(null, squares, 'X'),
   )
 
-  const updateLocalStorage = React.useCallback(() => {
-    window.localStorage.setItem('squares', JSON.stringify(squares))
-  }, [squares])
-
   React.useEffect(() => {
-    updateLocalStorage()
+    window.localStorage.setItem('squares', JSON.stringify(squares))
     const nextValue = calculateNextValue(squares)
     const winner = calculateWinner(squares)
     const status = calculateStatus(winner, squares, nextValue)
     setStatus(status)
-  }, [squares, updateLocalStorage])
+  }, [squares])
 
   const selectSquare = square => {
     const nextValue = calculateNextValue(squares)
@@ -128,7 +124,6 @@ function Board() {
 
   const restart = () => {
     setSquares(Array(9).fill(null))
-    updateLocalStorage()
   }
 
   return (
