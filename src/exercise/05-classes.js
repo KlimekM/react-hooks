@@ -17,7 +17,9 @@ function Tilt(props) {
     }
     VanillaTilt.init(tiltNode, vanillaTiltOptions)
 
-    return () => tiltNode.vanillaTilt.destroy()
+    return function cleanup() {
+      tiltNode.vanillaTilt.destroy()
+    }
   }, [])
 
   return (
